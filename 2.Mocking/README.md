@@ -69,14 +69,109 @@ const utils = require('../../utils');
 
 const originalGetWinner = utils.getWinner;
 
-// The function getWinner is overrided to avoid the expensive process
-utils.getWinner = (p1, p2) => p1;
+test('the thumbWar function', () => {
+  // The function getWinner is overrided to avoid the expensive process
+  utils.getWinner = (p1, p2) => p1;
+  
+  const winner = thumbWar('Diego Villa', 'Adolfo Jose');
+
+  expect(winner).toBe('Diego Villa');
+
+  // After we finish the test we need to return to the original function
+  utils.getWinner = originalGetWinner;
+});
+```
+
+## Mocking functions
+
+Mock functions, also known as *spies*, are special functions that allow us to track how a particular function is called by external code. Using mock functions we can understand how the function was used.
+
+Mock functions allows to override the orginal function behavior, and we can describe specif return values to suit our tests.
+
+By using mock functions, we can know:
+
+- The number of calls it received.
+- The arguments values used in each invocation.
+- The context (`this`) used in each invocation.
+
+### When to use mock functions
+
+We can use mock functions when:
+
+- We want to replace a specific function return value.
+- We want to check if a test is executing a function in a certain way.
+
+### How works the `jest.fn`
+
+The jest.fn is a `factory` method that creates mock functions. Each mock function has some special properties; `mock` is the most fundamental property. This property is an object that has all the mock state information about how the function was invoked.
+
+The `mock` object contains three properties:
+
+- `calls`: stores the properties used on each call.
+- `instances`: stores the `this` values used on each invokation.
+- `results`: stores how and with what values the function existed in each invokation.
+
+**Jest** provides a set of custom matchers to check expectations about how the function was called. Some of them are:
+
+- `expect(fn).toBeCalled()`
+- `expect(fn).toBeCalledTimes(n)`
+- `expect(fn).toBeCalledWith()`
+
+```jsx
+// __tests__/framework/mock-functions.test.js
+
+const thumbWar = require('../../thumb-war');
+const utils = require('../../utils');
 
 test('the thumbWar function', () => {
+  const originalGetWinner = utils.getWinner;
+  
+  // The function getWinner is overrided to avoid the expensive process
+  utils.getWinner = jest.fn((p1, p2) => p1);
+
+  const winner = thumbWar('Diego Villa', 'Adolfo Jose');
+
+  expect(winner).toBe('Diego Villa');
+  
+  expect(utils.getWinner).toHaveBeenCalledTimes(2);
+  expect(utils.getWinner).toHaveBeenCalledWith('Diego Villa', 'Adolfo Jose');
+  expect(utils.getWinner).toHaveBeenNthCalledWith(
+    1,
+    'Diego Villa',
+    'Adolfo Jose',
+  );
+  expect(utils.getWinner).toHaveBeenNthCalledWith(
+    2,
+    'Diego Villa',
+    'Adolfo Jose',
+  );
+
+  // After we finish the test we need to return to the original function
+  utils.getWinner = originalGetWinner;
+});
+```
+
+```jsx
+const thumbWar = require('../../thumb-war');
+const utils = require('../../utils');
+
+test('the thumbWar function', () => {
+  const originalGetWinner = utils.getWinner;
+
+  // The function getWinner is overrided to avoid the expensive process
+  utils.getWinner = jest.fn((p1, p2) => p1);
+
   const winner = thumbWar('Diego Villa', 'Adolfo Jose');
   expect(winner).toBe('Diego Villa');
-});
 
-// After we finish the test we need to return to the original function
-utils.getWinner = originalGetWinner;
+  // It is a shortcut for toHaveBeenCalledTimes, toHaveBeenCalledWith,
+  // and toHaveBeenNthCalledWith
+  expect(utils.getWinner.mock.calls).toEqual([
+    ['Diego Villa', 'Adolfo Jose'],
+    ['Diego Villa', 'Adolfo Jose'],
+  ]);
+
+  // After we finish the test we need to return to the original function
+  utils.getWinner = originalGetWinner;
+});
 ```
