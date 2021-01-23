@@ -47,3 +47,24 @@ test('the thumbWar function', () => {
   // After we finish the test we need to return to the original function
   utils.getWinner = originalGetWinner;
 });
+
+
+test('the thumbWar function', () => {
+  jest.spyOn(utils, 'getWinner');
+
+  // The function getWinner is overrided to avoid the expensive process
+  utils.getWinner.mockImplementation((p1, p2) => p1);
+
+  const winner = thumbWar('Diego Villa', 'Adolfo Jose');
+  expect(winner).toBe('Diego Villa');
+
+  // It is a shortcut for toHaveBeenCalledTimes, toHaveBeenCalledWith,
+  // and toHaveBeenNthCalledWith
+  expect(utils.getWinner.mock.calls).toEqual([
+    ['Diego Villa', 'Adolfo Jose'],
+    ['Diego Villa', 'Adolfo Jose'],
+  ]);
+
+  // After we finish the test we need to return to the original function
+  utils.getWinner.mockRestore();
+});
