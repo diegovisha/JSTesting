@@ -207,3 +207,100 @@ test('the thumbWar function', () => {
   utils.getWinner.mockRestore();
 });
 ```
+
+## Mocking modules
+
+`jest.mock` all us to mock an entire module.
+
+```jsx
+// __tests__/framework/mock-modules.test.js
+
+const thumbWar = require('../../thumb-war');
+const utils = require('../../utils');
+
+jest.mock('../../utils', () => {
+  return {
+    getWinner: jest.fn((p1, p2) => p1),
+  };
+});
+
+test('the thumbWar function', () => {
+  const winner = thumbWar('Diego Villa', 'Adolfo Jose');
+
+  expect(winner).toBe('Diego Villa');
+  expect(utils.getWinner.mock.calls).toEqual([
+    ['Diego Villa', 'Adolfo Jose'],
+    ['Diego Villa', 'Adolfo Jose'],
+  ]);
+
+  // After we finish the test we need to return to the original function
+  utils.getWinner.mockReset();
+});
+```
+
+Supposing that we are mocking a network request, we can implement it like:
+
+```jsx
+// users.js
+
+import axios from 'axios';
+
+class Users {
+  static all() {
+    return axios.get('/users.json').then((resp) => resp.data);
+  }
+}
+
+export default Users;
+```
+
+```jsx
+// users.test.js
+import axios from 'axios';
+import Users from './users';
+
+jest.mock('axios');
+
+test('should fetch users', () => {
+  const users = [{ name: 'Bob' }];
+  const apiResponse = {
+    data: users,
+  };
+
+  axios.get.mockResolvedValue(apiResponse);
+
+  return Users.all().then((data) => expect(data).toEqual(users));
+});
+```
+
+### Creating a shared JS mock module
+
+For mocking an entire module in our tests we can create a `__mocks__` directory.
+
+```jsx
+// /__mocks__/utils.js
+module.exports = {
+  getWinner: jest.fn((p1, p2) => p1),
+};
+```
+
+```jsx
+// __tests__/framework/mock-modules.test.js
+const thumbWar = require('../../thumb-war');
+const utils = require('../../utils');
+
+jest.mock('../../utils');
+
+test('the thumbWar function', () => {
+  const winner = thumbWar('Diego Villa', 'Adolfo Jose');
+
+  expect(winner).toBe('Diego Villa');
+  expect(utils.getWinner.mock.calls).toEqual([
+    ['Diego Villa', 'Adolfo Jose'],
+    ['Diego Villa', 'Adolfo Jose'],
+  ]);
+
+  // After we finish the test we need to return to the original function
+  utils.getWinner.mockReset();
+});
+```

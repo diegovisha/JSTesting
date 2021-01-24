@@ -48,7 +48,6 @@ test('the thumbWar function', () => {
   utils.getWinner = originalGetWinner;
 });
 
-
 test('the thumbWar function', () => {
   jest.spyOn(utils, 'getWinner');
 
